@@ -1,0 +1,401 @@
+SPOTIFY.HTML
+<!DOCTYPE html>
+<html>
+<head>
+<title>Spotify Clone</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #121212; color: #fff; font-family: 'Helvetica Neue', Arial, sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  .app { display: flex; flex: 1; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar { width: 240px; background: #000; display: flex; flex-direction: column; padding: 16px 0; flex-shrink: 0; }
+  .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 0 16px 20px; border-bottom: 1px solid #282828; }
+  .logo-circle { width: 34px; height: 34px; background: #1db954; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 15px; color: #000; }
+  .sidebar-logo span { font-size: 18px; font-weight: 800; }
+  .sidebar-section { padding: 16px 16px 6px; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: #b3b3b3; text-transform: uppercase; }
+  .sbar { display: flex; align-items: center; gap: 14px; padding: 10px 16px; cursor: pointer; border-radius: 6px; margin: 0 8px 2px; font-size: 14px; font-weight: 600; color: #b3b3b3; transition: all 0.15s; }
+  .sbar:hover, .sbar.active { background: #282828; color: #fff; }
+  .playlist-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+  .playlist-item { padding: 8px 24px; font-size: 13px; color: #b3b3b3; cursor: pointer; transition: color 0.15s; }
+  .playlist-item:hover { color: #fff; }
+
+  /* PAGES */
+  .page { display: none; flex: 1; overflow-y: auto; }
+  .page.active { display: block; }
+
+  /* HOME PAGE */
+  .home-bg { background: linear-gradient(180deg, #1a3a2a 0%, #121212 340px); }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; position: sticky; top: 0; z-index: 10; background: transparent; }
+  .nav-arrows { display: flex; gap: 8px; }
+  .nav-btn { width: 32px; height: 32px; background: rgba(0,0,0,0.6); border: none; border-radius: 50%; color: #fff; font-size: 16px; cursor: pointer; }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .upgrade-btn { background: #fff; color: #000; border: none; border-radius: 20px; padding: 8px 18px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .avatar { width: 32px; height: 32px; background: #535353; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .content { padding: 0 24px 24px; }
+  .greeting { font-size: 24px; font-weight: 800; margin-bottom: 20px; }
+
+  /* QUICK GRID */
+  .quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 32px; }
+  .quick-card { background: #282828; border-radius: 6px; display: flex; align-items: center; overflow: hidden; cursor: pointer; transition: background 0.15s; }
+  .quick-card:hover { background: #3e3e3e; }
+  .quick-thumb { width: 56px; height: 56px; flex-shrink: 0; }
+  .quick-title { font-size: 13px; font-weight: 700; padding: 0 14px; }
+
+  /* SECTION */
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .section-title { font-size: 20px; font-weight: 800; }
+  .see-all { font-size: 12px; font-weight: 700; color: #b3b3b3; cursor: pointer; text-transform: uppercase; }
+  .see-all:hover { color: #fff; }
+
+  /* ALBUM CARDS */
+  .cards-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+  .album-card { background: #181818; border-radius: 8px; padding: 16px; cursor: pointer; transition: background 0.2s; position: relative; }
+  .album-card:hover { background: #282828; }
+  .album-card:hover .play-fab { opacity: 1; transform: translateY(0); }
+  .album-art { width: 100%; aspect-ratio: 1; border-radius: 6px; margin-bottom: 12px; position: relative; overflow: hidden; }
+  .album-badge { position: absolute; top: 8px; left: 8px; background: #1db954; color: #000; font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 4px; }
+  .album-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .album-sub { font-size: 12px; color: #b3b3b3; }
+  .play-fab { position: absolute; bottom: 16px; right: 16px; width: 40px; height: 40px; background: #1db954; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; opacity: 0; transform: translateY(6px); transition: all 0.2s; box-shadow: 0 6px 20px rgba(0,0,0,0.4); cursor: pointer; border: none; }
+
+  /* SEARCH PAGE */
+  .search-bg { background: #121212; padding: 24px; }
+  .search-input-wrap { margin-bottom: 28px; }
+  .search-input { width: 100%; max-width: 360px; padding: 12px 18px; border-radius: 24px; border: none; background: #fff; color: #000; font-size: 14px; font-weight: 500; outline: none; }
+  .genre-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .genre-card { border-radius: 8px; padding: 16px; cursor: pointer; position: relative; overflow: hidden; height: 100px; display: flex; align-items: flex-end; font-size: 16px; font-weight: 800; transition: transform 0.15s; }
+  .genre-card:hover { transform: scale(1.03); }
+
+  /* LIBRARY PAGE */
+  .library-bg { background: #121212; padding: 24px; }
+  .library-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .library-title { font-size: 22px; font-weight: 800; }
+  .create-btn { background: #fff; color: #000; border: none; border-radius: 20px; padding: 8px 18px; font-size: 13px; font-weight: 700; cursor: pointer; }
+  .library-list { display: flex; flex-direction: column; gap: 4px; }
+  .library-item { display: flex; align-items: center; gap: 14px; padding: 10px 12px; border-radius: 8px; cursor: pointer; transition: background 0.15s; }
+  .library-item:hover { background: #282828; }
+  .lib-art { width: 48px; height: 48px; border-radius: 4px; flex-shrink: 0; }
+  .lib-info { flex: 1; }
+  .lib-name { font-size: 14px; font-weight: 600; }
+  .lib-meta { font-size: 12px; color: #b3b3b3; margin-top: 2px; }
+
+  /* PLAYER */
+  .player { height: 80px; background: #181818; border-top: 1px solid #282828; display: flex; align-items: center; padding: 0 16px; gap: 16px; flex-shrink: 0; }
+  .now-playing { display: flex; align-items: center; gap: 12px; width: 240px; flex-shrink: 0; }
+  .now-art { width: 48px; height: 48px; border-radius: 4px; flex-shrink: 0; }
+  .now-info { flex: 1; min-width: 0; }
+  .now-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .now-artist { font-size: 11px; color: #b3b3b3; }
+  .now-heart { font-size: 16px; color: #1db954; cursor: pointer; flex-shrink: 0; }
+  .player-center { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .player-controls { display: flex; align-items: center; gap: 20px; }
+  .ctrl-btn { background: none; border: none; color: #b3b3b3; font-size: 20px; cursor: pointer; transition: color 0.15s; }
+  .ctrl-btn:hover { color: #fff; }
+  .play-btn { width: 36px; height: 36px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #000; cursor: pointer; border: none; }
+  .progress-bar { width: 100%; display: flex; align-items: center; gap: 8px; }
+  .time { font-size: 11px; color: #b3b3b3; min-width: 32px; }
+  .track { flex: 1; height: 4px; background: #535353; border-radius: 2px; cursor: pointer; }
+  .track-fill { height: 100%; background: #b3b3b3; border-radius: 2px; width: 0%; transition: width 0.3s linear; }
+  .track:hover .track-fill { background: #1db954; }
+  .player-right { display: flex; align-items: center; gap: 10px; width: 200px; justify-content: flex-end; }
+  .vol-bar { width: 80px; height: 4px; background: #535353; border-radius: 2px; cursor: pointer; }
+  .vol-fill { width: 70%; height: 100%; background: #b3b3b3; border-radius: 2px; }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-thumb { background: #535353; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-circle">S</div>
+      <span>Spotify</span>
+    </div>
+    <div class="sidebar-section">Menu</div>
+    <div class="sbar active" onclick="showPage('home', this)">Home</div>
+    <div class="sbar" onclick="showPage('search', this)">Search</div>
+    <div class="sbar" onclick="showPage('library', this)">Your Library</div>
+    <div class="sidebar-section">Playlists</div>
+    <div class="playlist-list">
+      <div class="playlist-item">Liked Songs</div>
+      <div class="playlist-item">Top Hits 2026</div>
+      <div class="playlist-item">Chill Vibes</div>
+      <div class="playlist-item">Late Night Drive</div>
+      <div class="playlist-item">Workout Mix</div>
+      <div class="playlist-item">Study Focus</div>
+    </div>
+  </div>
+
+  <!-- HOME PAGE -->
+  <div class="page home-bg active" id="page-home">
+    <div class="topbar">
+      <div class="nav-arrows">
+        <button class="arrow-btn">&larr;</button>
+        <button class="aroow-btn">&rarr;</button>
+      </div>
+      <div class="topbar-right">
+        <button class="upgrade-btn">Upgrade</button>
+        <div class="avatar">You</div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="greeting" id="greeting">Good evening</div>
+      <div class="quick-grid">
+        <div class="quick-card" onclick="playSong('Liked Songs','Your Collection','linear-gradient(135deg,#6b3fa0,#3b1f75)')">
+          <div class="quick-thumb" style="background:linear-gradient(135deg,#6b3fa0,#3b1f75)"></div>
+          <span class="quick-title">Liked Songs</span>
+        </div>
+        <div class="quick-card" onclick="playSong('Top Hits','Various Artists','linear-gradient(135deg,#c0392b,#e74c3c)')">
+          <div class="quick-thumb" style="background:linear-gradient(135deg,#c0392b,#e74c3c)"></div>
+          <span class="quick-title">Top Hits</span>
+        </div>
+        <div class="quick-card" onclick="playSong('Chill Mix','Various Artists','linear-gradient(135deg,#0f6e56,#1db954)')">
+          <div class="quick-thumb" style="background:linear-gradient(135deg,#0f6e56,#1db954)"></div>
+          <span class="quick-title">Chill Mix</span>
+        </div>
+        <div class="quick-card" onclick="playSong('Daily Mix 1','Various Artists','linear-gradient(135deg,#1a5276,#2e86c1)')">
+          <div class="quick-thumb" style="background:linear-gradient(135deg,#1a5276,#2e86c1)"></div>
+          <span class="quick-title">Daily Mix 1</span>
+        </div>
+        <div class="quick-card" onclick="playSong('Hip Hop','Various Artists','linear-gradient(135deg,#922b21,#cb4335)')">
+          <div class="quick-thumb" style="background:linear-gradient(135deg,#922b21,#cb4335)"></div>
+          <span class="quick-title">Hip Hop</span>
+        </div>
+        <div class="quick-card" onclick="playSong('Late Night','Various Artists','linear-gradient(135deg,#7d6608,#d4ac0d)')">
+          <div class="quick-thumb" style="background:linear-gradient(135deg,#7d6608,#d4ac0d)"></div>
+          <span class="quick-title">Late Night</span>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <span class="section-title">Recently played</span>
+        <span class="see-all">See all</span>
+      </div>
+      <div class="cards-row">
+        <div class="album-card" onclick="playSong('Wildest Dreams','Taylor Swift','linear-gradient(135deg,#6b3fa0,#3b1f75)')">
+          <div class="album-art" style="background:linear-gradient(135deg,#6b3fa0,#3b1f75)"></div>
+          <div class="album-title">Wildest Dreams</div>
+          <div class="album-sub">Taylor Swift</div>
+          <button class="play-fab">▶</button>
+        </div>
+        <div class="album-card" onclick="playSong('Maya','Arijith Singh','linear-gradient(135deg,#c0392b,#e67e22)')">
+          <div class="album-art" style="background:linear-gradient(135deg,#c0392b,#e67e22)"></div>
+          <div class="album-title">Maya</div>
+          <div class="album-sub">Arijith Singh</div>
+          <button class="play-fab">▶</button>
+        </div>
+        <div class="album-card" onclick="playSong('Hanuman chalisa','Gowra Hari','linear-gradient(135deg,#1a5276,#2471a3)')">
+          <div class="album-art" style="background:linear-gradient(135deg,#1a5276,#2471a3)"></div>
+          <div class="album-title">Hanuman chalisa</div>
+          <div class="album-sub">Gowra Hari</div>
+          <button class="play-fab">▶</button>
+        </div>
+        <div class="album-card" onclick="playSong('Aagi Aagi','Anurag kulkarni','linear-gradient(135deg,#0f6e56,#148f77)')">
+          <div class="album-art" style="background:linear-gradient(135deg,#0f6e56,#148f77)"></div>
+          <div class="album-title">Aagi Aagi</div>
+          <div class="album-sub">Anurag kulkarni</div>
+          <button class="play-fab">▶</button>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <span class="section-title">Recommended for you</span>
+        <span class="see-all">See all</span>
+      </div>
+      <div class="cards-row">
+        <div class="album-card" onclick="playSong('Bommanu Geesthey','Devisri prasad','linear-gradient(135deg,#512e5f,#8e44ad)')">
+          <div class="album-art" style="background:linear-gradient(135deg,#512e5f,#8e44ad)"></div>
+          <div class="album-title">Bommanu Geesthey</div>
+          <div class="album-sub">Devisri prasad</div>
+          <button class="play-fab">▶</button>
+        </div>
+        <div class="album-card" onclick="playSong('Moral of the Story','Ashe','linear-gradient(135deg,#1b2631,#2e4057)')">
+          <div class="album-art" style="background:linear-gradient(135deg,#1b2631,#2e4057)"></div>
+          <div class="album-title">Moral of the Story</div>
+          <div class="album-sub">Ashe</div>
+          <button class="play-fab">▶</button>
+        </div>
+        <div class="album-card" onclick="playSong('Garuda Gamana Tava','Anurag kulkarni','linear-gradient(135deg,#784212,#ca6f1e)')">
+          <div class="album-art" style="background:linear-gradient(135deg,#784212,#ca6f1e)"></div>
+          <div class="album-title">Garuda Gamana Tava</div>
+          <div class="album-sub">Anurag kulkarni</div>
+          <button class="play-fab">▶</button>
+        </div>
+        <div class="album-card" onclick="playSong('Ishq Wala Lover','Vishal-shekhar','linear-gradient(135deg,#0b3d0b,#196f3d)')">
+          <div class="album-art" style="background:linear-gradient(135deg,#0b3d0b,#196f3d)"></div>
+          <div class="album-title">Ishq Wala Love</div>
+          <div class="album-sub">Vishal-shekhar</div>
+          <button class="play-fab">▶</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEARCH PAGE -->
+  <div class="page search-bg" id="page-search">
+    <div style="padding:24px">
+      <h2 style="font-size:22px;font-weight:800;margin-bottom:20px">Search</h2>
+      <div class="search-input-wrap">
+        <input class="search-input" type="text" placeholder="🔍  Artists, songs, or podcasts" oninput="filterSearch(this.value)" />
+      </div>
+      <div class="section-title" style="margin-bottom:16px;font-size:16px">Browse all</div>
+      <div class="genre-grid" id="genre-grid">
+        <div class="genre-card" style="background:#e91429" onclick="playSong('Pop Mix','Various','linear-gradient(135deg,#e91429,#ff6b6b)')">Pop</div>
+        <div class="genre-card" style="background:#ba5d07" onclick="playSong('Hip Hop Mix','Various','linear-gradient(135deg,#ba5d07,#e67e22)')">Hip-Hop</div>
+        <div class="genre-card" style="background:#148a08" onclick="playSong('Workout Mix','Various','linear-gradient(135deg,#148a08,#1db954)')">Workout</div>
+        <div class="genre-card" style="background:#0d73ec" onclick="playSong('Chill Mix','Various','linear-gradient(135deg,#0d73ec,#2e86c1)')">Chill</div>
+        <div class="genre-card" style="background:#8d67ab" onclick="playSong('R&B Mix','Various','linear-gradient(135deg,#8d67ab,#6b3fa0)')">R&amp;B</div>
+        <div class="genre-card" style="background:#e61e32" onclick="playSong('Latin Mix','Various','linear-gradient(135deg,#e61e32,#c0392b)')">Latin</div>
+        <div class="genre-card" style="background:#1e3264" onclick="playSong('Rock Mix','Various','linear-gradient(135deg,#1e3264,#2471a3)')">Rock</div>
+        <div class="genre-card" style="background:#477d95" onclick="playSong('Jazz Mix','Various','linear-gradient(135deg,#477d95,#5dade2)')">Jazz</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIBRARY PAGE -->
+  <div class="page library-bg" id="page-library">
+    <div style="padding:24px">
+      <div class="library-header">
+        <span class="library-title">Your Library</span>
+        <button class="create-btn">+ Create Playlist</button>
+      </div>
+      <div class="library-list">
+        <div class="library-item" onclick="playSong('Liked Songs','Your Collection','linear-gradient(135deg,#6b3fa0,#3b1f75)')">
+          <div class="lib-art" style="background:linear-gradient(135deg,#6b3fa0,#3b1f75)"></div>
+          <div class="lib-info"><div class="lib-name">Liked Songs</div><div class="lib-meta">Playlist • 245 songs</div></div>
+        </div>
+        <div class="library-item" onclick="playSong('Top Hits 2024','Various Artists','linear-gradient(135deg,#c0392b,#e74c3c)')">
+          <div class="lib-art" style="background:linear-gradient(135deg,#c0392b,#e74c3c)"></div>
+          <div class="lib-info"><div class="lib-name">Top Hits 2024</div><div class="lib-meta">Playlist • 50 songs</div></div>
+        </div>
+        <div class="library-item" onclick="playSong('Chill Vibes','Various Artists','linear-gradient(135deg,#0f6e56,#1db954)')">
+          <div class="lib-art" style="background:linear-gradient(135deg,#0f6e56,#1db954)"></div>
+          <div class="lib-info"><div class="lib-name">Chill Vibes</div><div class="lib-meta">Playlist • 38 songs</div></div>
+        </div>
+        <div class="library-item" onclick="playSong('Late Night Drive','Various Artists','linear-gradient(135deg,#7d6608,#d4ac0d)')">
+          <div class="lib-art" style="background:linear-gradient(135deg,#7d6608,#d4ac0d)"></div>
+          <div class="lib-info"><div class="lib-name">Late Night Drive</div><div class="lib-meta">Playlist • 22 songs</div></div>
+        </div>
+        <div class="library-item" onclick="playSong('Workout Mix','Various Artists','linear-gradient(135deg,#922b21,#cb4335)')">
+          <div class="lib-art" style="background:linear-gradient(135deg,#922b21,#cb4335)"></div>
+          <div class="lib-info"><div class="lib-name">Workout Mix</div><div class="lib-meta">Playlist • 60 songs</div></div>
+        </div>
+        <div class="library-item" onclick="playSong('Study Focus','Various Artists','linear-gradient(135deg,#1a5276,#2e86c1)')">
+          <div class="lib-art" style="background:linear-gradient(135deg,#1a5276,#2e86c1)"></div>
+          <div class="lib-info"><div class="lib-name">Study Focus</div><div class="lib-meta">Playlist • 45 songs</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PLAYER BAR -->
+<div class="player">
+  <div class="now-playing">
+    <div class="now-art" id="nowArt" style="background:linear-gradient(135deg,#6b3fa0,#3b1f75)"></div>
+    <div class="now-info">
+      <div class="now-title" id="nowTitle">Hanuman chalisa</div>
+      <div class="now-artist" id="nowArtist">Gowra Hari</div>
+    </div>
+    <span class="now-heart" id="heartBtn">♥</span>
+  </div>
+  <div class="player-center">
+    <div class="player-controls">
+      <button class="ctrl-btn">⇅</button>
+      <button class="ctrl-btn">⏮</button>
+      <button class="play-btn" id="playBtn">⏸</button>
+      <button class="ctrl-btn">⏭</button>
+      <button class="ctrl-btn">↻</button>
+    </div>
+    <div class="progress-bar">
+      <span class="time" id="currentTime">0:00</span>
+      <div class="track" id="track">
+        <div class="track-fill" id="trackFill"></div>
+      </div>
+      <span class="time">20:05</span>
+    </div>
+  </div>
+  <div class="player-right">
+    <span style="font-size:18px;color:#b3b3b3">🔊</span>
+    <div class="vol-bar"><div class="vol-fill"></div></div>
+  </div>
+</div>
+
+<script>
+  // Greeting
+  const h = new Date().getHours();
+  document.getElementById('greeting').textContent = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+
+  // Page switching
+  function showPage(name) {
+  document.getElementById('page-home').style.display = 'none';
+  document.getElementById('page-search').style.display = 'none';
+  document.getElementById('page-library').style.display = 'none';
+  document.getElementById('page-' + name).style.display = 'block';
+}
+
+  // Play song
+  function playSong(title, artist, bg) {
+    document.getElementById('nowTitle').textContent = title;
+    document.getElementById('nowArtist').textContent = artist;
+    document.getElementById('nowArt').style.background = bg;
+    isPlaying = true;
+    document.getElementById('playBtn').textContent = '⏸';
+    progress = 0;
+  }
+
+  // Player logic
+let isPlaying = true;
+const playBtn = document.getElementById('playBtn');
+const trackFill = document.getElementById('trackFill');
+
+// Play and Pause button
+playBtn.addEventListener('click', function() {
+  if (isPlaying == true) {
+    isPlaying = false;
+    playBtn.textContent = '▶';
+  } else {
+    isPlaying = true;
+    playBtn.textContent = '⏸';
+  }
+});
+
+// Move progress bar slowly
+let progress = 0;
+
+setInterval(function() {
+  if (isPlaying == true) {
+    progress = progress + 1;
+    trackFill.style.width = progress + '%';
+  }
+  if (progress == 100) {
+    progress = 0;
+  }
+}, 1000);
+
+  // Heart toggle
+  const heart = document.getElementById('heartBtn');
+  let liked = true;
+  heart.addEventListener('click', () => {
+    liked = !liked;
+    heart.style.color = liked ? '#1db954' : '#b3b3b3';
+  });
+
+  // Search filter
+  function filterSearch(val) {
+    const cards = document.querySelectorAll('.genre-card');
+    cards.forEach(c => {
+      c.style.display = c.textContent.toLowerCase().includes(val.toLowerCase()) || val === '' ? 'flex' : 'none';
+    });
+  }
+
+  // Init progress
+  trackFill.style.width = progress + '%';
+  currentTime.textContent = fmt(progress);
+</script>
+</body>
+</html>
